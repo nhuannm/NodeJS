@@ -1,0 +1,14 @@
+//VieON verify data and signature 
+const fs = require('fs');
+var Request = require("request");
+const crypto = require("crypto")
+//base64 oki
+const isVerified = crypto.verify(
+	"RSA-SHA256",
+	Buffer.from(respdata,'base64'),
+	{
+		key: VieONpublicKey,
+		padding: crypto.constants.RSA_PKCS1_PADDING,
+	},
+	Buffer.from(respsig,'base64')
+)
