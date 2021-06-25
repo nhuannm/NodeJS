@@ -2,6 +2,13 @@
 //version 2. 2021-06-25 
 // split buff to trunk with key size, to crypto, decrypto long message
 //fix mã hóa, giãi mã với buffer lớn hơn key.size mã hóa
+// Flow mã hóa và giải mã như sau:
+// dữ liệu ==> buffer (binary) ==> cắt nhỏ dữ liệu = key size -11 octec ==> mã hóa từng buffer đã cắt: buffer public key (SPT) ==> 
+// ==> ghép các buffer sau mã hóa .push() thành buff mới: Size buffer sau mã hóa = key size *2 ( 256 *2) * n số buff cắt
+// ==> mã hóa base64 buffer đã mã hóa. Dữ liệu sau mã hóa publicket + base64 ==> ký số để gửi đi
+// Giải mã:
+// ==> kiểm tra chữ ký số, oki mới giải mã
+// Dữ liệu nhận được ==> giải mã base64 ==> cắt nhỏ = size của key ==> giải mã từng phần ==> ghép lại push() ==> convert sang utf-8 to
 const fs = require('fs');
 var Request = require("request");
 var rp = require('request-promise');
@@ -26,9 +33,6 @@ const VieONprivateKey = fs.readFileSync("./pem_files_dev/vieon_private_dev.pem",
 const SPTKeySize = 512;
 const SPTVieONSize = 256;
 function MaHoa (plaintext, publicKey) { 
-    //const publicKey = fs.readFileSync(publicKeyFile, "utf8"); 
-  
-    // publicEncrypt() method with its parameters 
     const encrypted = crypto.publicEncrypt(
 	{
 		key: publicKey,
@@ -53,7 +57,6 @@ function GiaiMa (plaintext, privateKey) {
 		//oaepHash: "sha256",
 	},
 	Buffer.from(plaintext,"base64")
-	
 	)
 	//return decryptedData.toString("utf8");
 	try {
@@ -169,7 +172,6 @@ function ChunkBuff(msg, size){
             console.log("i=int",start);
         }
         result.push(msgbuff.slice(start, start+count));
-       
     }
    return result;
 }
