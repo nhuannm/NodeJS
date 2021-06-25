@@ -1,0 +1,27 @@
+{
+  "name": "nodejs-rsa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "console-stamp": "^0.2.9",
+    "crypto": "^1.0.1",
+    "express": "^4.17.1",
+    "images-to-pdf": "^1.0.3",
+    "log-timestamp": "^0.3.0",
+    "mssql": "^6.3.1",
+    "node-rsa": "^1.1.1",
+    "node-sms-pdu": "^0.3.0",
+    "node-telegram-bot-api": "^0.52.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "sms-pdu-node": "^0.1.2",
+    "system-sleep": "^1.3.7"
+  }
+}
