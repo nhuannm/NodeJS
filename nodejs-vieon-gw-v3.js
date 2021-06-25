@@ -13,6 +13,8 @@ const fs = require('fs');
 var Request = require("request");
 var rp = require('request-promise');
 const crypto = require("crypto")
+//time stamp 
+const {timeStamp} = require("./nodejs-get-current systemtime");
 //server
 var express = require('express');
 const bodyParser = require('body-parser');
@@ -103,12 +105,12 @@ function TaoChuKySo(data,privatekey){
 function KiemTraChuKy(data,signature,publickey){
 	const isVerified = crypto.verify(
 	"RSA-SHA256",
-	Buffer.from(respdata,'base64'),
+	Buffer.from(data,'base64'),
 	{
-		key: VieONpublicKey,
+		key: publickey,
 		padding: crypto.constants.RSA_PKCS1_PADDING,
 	},
-	Buffer.from(respsig,'base64')
+	Buffer.from(signature,'base64')
 	)
 	return isVerified;
 }
@@ -157,19 +159,19 @@ function ChunkBuff(msg, size){
         int = int -1;
     } 
     var msgbuff = Buffer.from(msg);
-   console.log("Chunk msg buffer dataLength: ", dataLength);
-   console.log("Chunk msg buffer elements: ", int);
+   console.log(timeStamp() + " Mã hóa chunk msg buffer dataLength: ", dataLength);
+   console.log(timeStamp() + " Mã hóa chunk msg buffer elements: ", int);
     var result = [];
     var mahoa = [];
     var start, count;
     var encrypted;
     for (i=0; i<=int; i++){
-        console.log("i=",i);
+       // console.log("i=",i);
         start = maxLength * i;
         count = maxLength;
         if (i == int){
             count = dataLength - start;
-            console.log("i=int",start);
+           // console.log("i=int",start);
         }
         result.push(msgbuff.slice(start, start+count));
     }
@@ -180,19 +182,19 @@ function ChunkBuffGiaiMa(msg, size){
     var dataLength = Buffer.byteLength(msg);
     var int = Math.floor(dataLength / maxLength) -1;
     var msgbuff = Buffer.from(msg);
-   console.log("Chunk msg buffer dataLength: ", dataLength);
-   console.log("Chunk msg buffer elements: ", int);
+   console.log(timeStamp() + " Giải mã chunk msg buffer dataLength: ", dataLength);
+   console.log(timeStamp() + " Giải mã chunk msg buffer elements: ", int);
     var result = [];
     var mahoa = [];
     var start, count;
     var encrypted;
     for (i=0; i<=int; i++){
-        console.log("i=",i);
+        //console.log("i=",i);
         start = maxLength * i;
         count = maxLength;
         if (i == int){
             count = dataLength - start;
-            console.log("i=int",start);
+            //console.log("i=int",start);
         }
         result.push(msgbuff.slice(start, start+count));
        
@@ -248,46 +250,46 @@ function GiaiMaBuff(buffData, privateKey) {
 function MaHoaLongMess(msg,publicKey) {
     var list = ChunkBuff(msg, 215);
     var listSize = list.length;
-    console.log(list);
-    console.log("Buffer Array size ==> ",listSize);
+    //console.log(list);
+    //console.log("Buffer Array size ==> ",listSize);
     const iterator = list.values();
     var arrMaHoa = [];
     for (const value of iterator) {
         
         var maHoa = MaHoaBuff(value,publicKey);
-        console.dir("values mã hóa: " ,maHoa);
+       // console.dir("values mã hóa: " ,maHoa);
         arrMaHoa.push(maHoa);
     }
-    console.dir("Array Mahoa ==>",arrMaHoa);
+    //console.dir("Array Mahoa ==>",arrMaHoa);
     var newbuff = Buffer.concat(arrMaHoa);
-    console.log("New buff mã hóa ==>", newbuff);
+    //console.log("New buff mã hóa ==>", newbuff);
     var strMaHoa = newbuff.toString("base64");
-    console.log("strMaHoa base 64:", strMaHoa);
+    //console.log("strMaHoa base 64:", strMaHoa);
     return strMaHoa;
 } 
 ////////////////////////////////
 function GiaiMaLongMess(msg,privateKey){
     var strdebase64 = new Buffer.from(msg,"base64");
-    console.log("New buff giải mã ==>", strdebase64);
+    //console.log("New buff giải mã ==>", strdebase64);
     var listGiaiMa = ChunkBuffGiaiMa(strdebase64, 512);
     var listGiaiMaSize = listGiaiMa.length;
-    console.log("Buffer Array size GiaiMa ==> ",listGiaiMaSize);
+    //console.log("Buffer Array size GiaiMa ==> ",listGiaiMaSize);
     const iteratorGiaMa = listGiaiMa.values();
     var arrGiaiMa = [];
 
     for (const value of iteratorGiaMa) {
-        console.dir("values giải mã array" ,value);
+        //console.dir("values giải mã array" ,value);
         var GiaiMa = GiaiMaBuff(value,privateKey);
         
         arrGiaiMa.push(GiaiMa);
     }
-    console.dir("Buff GiaiMa",arrGiaiMa);
+    //console.dir("Buff GiaiMa",arrGiaiMa);
     var newbuffGiaiMa = Buffer.concat(arrGiaiMa);
-    console.log("New buff newbuffGiaiMa ==> ", newbuffGiaiMa);
+    //console.log("New buff newbuffGiaiMa ==> ", newbuffGiaiMa);
     var strGiaiMa = newbuffGiaiMa;
-    console.log("strMaHoa base 64:", strGiaiMa);
+    //console.log("strMaHoa base 64:", strGiaiMa);
     var FinalGiaiMa = strGiaiMa.toString("utf8");
-    console.log("GiaiMa ==> ", FinalGiaiMa);
+    //console.log("GiaiMa ==> ", FinalGiaiMa);
     return FinalGiaiMa;
 }
 //test với chuỗi là json string gửi sang
@@ -301,20 +303,14 @@ app.post('/vieon/package/list/msg',(req, res) => {
 	//res.end("yes");
 	async function CallAPI(){
 		const dataPosPromis = await PostPromis("https://dev-giftcode.vieon.vn/spt/package/v1/list",data,signature)
-		console.dir("dataPosPromis Function:",dataPosPromis);
+		console.dir(timeStamp() + " dataPosPromis Function:",dataPosPromis);
 		dataresp = await GiaiMaPromiss(JSON.parse(dataPosPromis).data,SPTprivateKey)
-		console.dir("VieON Repond Data: ", JSON.parse(dataPosPromis).data);	
+		console.dir(timeStamp() + " VieON Repond Data: ", JSON.parse(dataPosPromis).data);	
 		var VieONDataRespond = JSON.parse(dataPosPromis).data;
 		//var VieONDataDecrypt = GiaiMa(VieONDataRespond,SPTprivateKey);
         var VieONDataDecrypt = GiaiMaLongMess(VieONDataRespond,SPTprivateKey);
 		//dataPosPromis1 = GiaiMa(JSON.parse(dataPosPromis).data,SPTprivateKey);
 		res.send(JSON.parse(VieONDataDecrypt));
-		
-		
-		//var datatest= VieONDataRepond; //"fS4tPtOlX2QegN9W4YrG2yepniFu6WxuBv3IIHd/DvHVyP38jcB/A8t30+++kX64SLQtxFnqtmHCNsldPW21Kz9c+KbKbNzoNS7/KEfXFXFgL46Vb8CtL/lagdAUmFn7BNZL6bLF7/+OTXRhFRSBajvJDq5b7FS94IdYRN0c1fIQiUdSrPlmrj2siN2aze8kP9y1LDHuYzu3o0Sqwp+RKuKyat2xYYzmKvBaTnWswNHkWC+NUSuKQzHn+oqczPI/GMY+V/C/WRM6H9jpVj/NmbHUo1soLJ65fFwCETYJ+Uq8nrVx10aGryrW887/qdDgQKe9yB/m95QqTZWV1ZhAmA==";
-		//var dataPosPromis1 = GiaiMa(datatest,SPTprivateKey);
-		//res.send(JSON.parse(dataPosPromis1));
-		//console.dir("TEST: ", dataPosPromis1);
 	} 
 	   CallAPI();
 	   
@@ -326,25 +322,21 @@ app.post('/vieon/spt/user/v1/create',(req, res) => {
 	//var data = MaHoa(msg,VieONpublicKey);
 	var data = MaHoaLongMess(msg,VieONpublicKey);
     var signature= TaoChuKySo(data,SPTprivateKey);
-	console.log("Data = "+data+", Signature is "+signature);
+	console.log(timeStamp() + " Data = "+data+", Signature is "+signature);
 	//res.end("yes");
 	async function CallAPI(){
-		//const dataPosPromis = await PostPromis("https://dev-giftcode.vieon.vn/spt/user/v1/create",data,signature)
-		//console.dir("dataPosPromis Function:",dataPosPromis);
-		//dataresp = await GiaiMaPromiss(JSON.parse(dataPosPromis).data,SPTprivateKey)
-		//console.dir("VieON Repond Data: ", JSON.parse(dataPosPromis).data);	
-		//var VieONDataRespond = JSON.parse(dataPosPromis).data;
-		//var VieONDataDecrypt = GiaiMa(VieONDataRespond,SPTprivateKey);
-		//dataPosPromis1 = GiaiMa(JSON.parse(dataPosPromis).data,SPTprivateKey);
-		//res.send(JSON.parse(VieONDataDecrypt));
 		//
 		try {
 			const dataPosPromis = await PostPromis("https://dev-giftcode.vieon.vn/spt/user/v1/create",data,signature)
-			console.dir("dataPosPromis Function:",dataPosPromis);
+			console.dir(timeStamp() + " dataPosPromis Function:",dataPosPromis);
 			//dataresp = await GiaiMaPromiss(JSON.parse(dataPosPromis).data,SPTprivateKey)
-            dataresp = GiaiMaLongMess(JSON.parse(dataPosPromis).data,SPTprivateKey);	
-			console.dir("Dữ liệu VieON trả về ==> ",dataresp)
-			res.send(JSON.parse(dataresp));
+            var isVerify = KiemTraChuKy(JSON.parse(dataPosPromis).data,JSON.parse(dataPosPromis).signature,VieONpublicKey);
+            if (isVerify == true){
+                console.log(timeStamp(),"Dữ liệu kiểm tra chữ ký đúng VieON!");
+                dataresp = GiaiMaLongMess(JSON.parse(dataPosPromis).data,SPTprivateKey);	
+			    console.dir(timeStamp() + " Dữ liệu VieON trả về ==> ",dataresp)
+			    res.send(JSON.parse(dataresp));
+            }
 		} catch (error) {
 			console.dir(error.error);
 			//res.status(200).json(error.error)	// không parse được object json, error.error đã là json rồi
@@ -353,7 +345,6 @@ app.post('/vieon/spt/user/v1/create',(req, res) => {
 		}
 	} 
 	   CallAPI();
-	   
   });
 //reset password
 app.post('/vieon/spt/user/v1/reset-password',(req, res) => {
@@ -389,12 +380,6 @@ app.post('/vieon/spt/user/v1/reset-password',(req, res) => {
 	console.log("Data: "+data+", Signature is: "+signature);
 	//res.end("yes");
 	async function CallAPI(){
-		
-		//console.dir("dataPosPromis Function:",dataPosPromis);
-		//console.dir("VieON Repond Data: ", JSON.parse(dataPosPromis).data);	
-		//var VieONDataRespond = JSON.parse(dataPosPromis).data;
-		//var VieONDataDecrypt = GiaiMa(VieONDataRespond,SPTprivateKey);
-		//res.send(JSON.parse(VieONDataDecrypt));
 		//
 		try {
 			const dataPosPromis = await PostPromis("https://dev-giftcode.vieon.vn/spt/package/v1/list",data,signature)
@@ -407,12 +392,9 @@ app.post('/vieon/spt/user/v1/reset-password',(req, res) => {
 			res.status(200).json({ 'error': error })	
 			//res.send(error.message)
 		}
-		
-		
 		//
 	} 
-	   CallAPI();
-	   
+	   CallAPI();  
   }); 
   // Kích hoạt gói dịch vụ cho khách hàng
   app.post('/vieon/spt/package/v1/activate',(req, res) => {
