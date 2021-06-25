@@ -1,7 +1,7 @@
 //VieON Gateway
 //version 2. 2021-06-25 
 // split buff to trunk with key size, to crypto, decrypto long message
-
+//fix
 const fs = require('fs');
 //var fs=require ("fs")
 var Request = require("request");
